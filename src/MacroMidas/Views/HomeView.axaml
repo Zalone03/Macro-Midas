@@ -7,10 +7,8 @@
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel MaxWidth="420" Margin="32,70,32,32" Spacing="22">
       <StackPanel Spacing="8" HorizontalAlignment="Center">
-        <Grid Width="52" Height="52" HorizontalAlignment="Center">
-          <Border CornerRadius="14" Background="{StaticResource Bg3Brush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" />
-          <c:Icon Width="26" Height="26" Data="{StaticResource Icon.Logo}" Foreground="{StaticResource GoldTextGradient}" StrokeThickness="2.6" />
-        </Grid>
+        <Image Width="72" Height="72" HorizontalAlignment="Center" Margin="0,0,0,4"
+               Source="/Assets/macromidas.png" RenderOptions.BitmapInterpolationMode="HighQuality" />
         <TextBlock Text="Macro Midas" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
         <TextBlock Text="Você ainda não tem fluxos." FontSize="12.5" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center" />
       </StackPanel>

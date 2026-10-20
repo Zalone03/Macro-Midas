@@ -8,7 +8,7 @@
         x:Class="MacroMidas.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Macro Midas"
-        Icon="/Assets/midas.ico"
+        Icon="/Assets/macromidas.ico"
         Width="1000" Height="660" MinWidth="680" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         Topmost="{Binding Settings.AlwaysOnTop}"
@@ -34,8 +34,8 @@
       <!-- Barra de título com menu clássico -->
       <Border x:Name="TitleBar" Background="Transparent">
         <Grid ColumnDefinitions="Auto,Auto,*,140">
-          <c:Icon Width="13" Height="13" Margin="14,0,8,0" VerticalAlignment="Center" IsHitTestVisible="False"
-                  Data="{StaticResource Icon.Logo}" Foreground="{StaticResource GoldTextGradient}" StrokeThickness="2.8" />
+          <Image Width="18" Height="18" Margin="11,0,6,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                 Source="/Assets/macromidas.png" RenderOptions.BitmapInterpolationMode="HighQuality" />
 
           <Menu Grid.Column="1" Classes="appMenu" VerticalAlignment="Center">
             <MenuItem Header="Arquivo">

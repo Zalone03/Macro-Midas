@@ -6,7 +6,7 @@
     <AssemblyName>MacroMidas</AssemblyName>
     <RootNamespace>MacroMidas</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\midas.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\macromidas.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Product>Macro Midas</Product>
