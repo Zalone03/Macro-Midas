@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MacroMidas.ViewModels"
+             xmlns:c="using:MacroMidas.Controls"
+             x:Class="MacroMidas.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel MaxWidth="420" Margin="32,70,32,32" Spacing="22">
+      <StackPanel Spacing="8" HorizontalAlignment="Center">
+        <Grid Width="52" Height="52" HorizontalAlignment="Center">
+          <Border CornerRadius="14" Background="{StaticResource Bg3Brush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" />
+          <c:Icon Width="26" Height="26" Data="{StaticResource Icon.Logo}" Foreground="{StaticResource GoldTextGradient}" StrokeThickness="2.6" />
+        </Grid>
+        <TextBlock Text="Macro Midas" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
+        <TextBlock Text="Você ainda não tem fluxos." FontSize="12.5" Foreground="{StaticResource Text3Brush}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel Spacing="2">
+        <Button Theme="{StaticResource GhostButton}" HorizontalAlignment="Stretch" Padding="12,9" Command="{Binding Main.NewFlowCommand}">
+          <Grid ColumnDefinitions="Auto,*">
+            <c:Icon Width="16" Height="16" Margin="0,1,14,0" VerticalAlignment="Top" Data="{StaticResource Icon.Plus}" Foreground="{StaticResource Text3Brush}" />
+            <StackPanel Grid.Column="1" Spacing="1">
+              <TextBlock Text="Novo fluxo" FontSize="13" Foreground="{StaticResource Text1Brush}" />
+              <TextBlock Text="Monte passo a passo, ou aperte F9 para gravar o que você faz." FontSize="11.5" Foreground="{StaticResource Text3Brush}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </Button>
+        <Button Theme="{StaticResource GhostButton}" HorizontalAlignment="Stretch" Padding="12,9" Command="{Binding Main.NewAutoClickCommand}">
+          <Grid ColumnDefinitions="Auto,*">
+            <c:Icon Width="16" Height="16" Margin="0,1,14,0" VerticalAlignment="Top" Data="{StaticResource Icon.Click}" Foreground="{StaticResource Text3Brush}" />
+            <StackPanel Grid.Column="1" Spacing="1">
+              <TextBlock Text="Auto-clique" FontSize="13" Foreground="{StaticResource Text1Brush}" />
+              <TextBlock Text="Aponte o mouse e aperte F6: clica sem parar ali." FontSize="11.5" Foreground="{StaticResource Text3Brush}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </Button>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

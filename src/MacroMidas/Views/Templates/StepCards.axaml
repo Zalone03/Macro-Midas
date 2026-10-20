@@ -1,0 +1,150 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:m="using:MacroMidas.Models"
+                    xmlns:v="using:MacroMidas.Views"
+                    xmlns:vm="using:MacroMidas.ViewModels"
+                    xmlns:c="using:MacroMidas.Controls"
+                    xmlns:conv="using:MacroMidas.Converters">
+
+  <v:StepTemplateSelector x:Key="StepCardSelector" Prefix="Card" />
+
+  <!-- Uma linha = ícone cinza + uma frase simples. Ações (⋯) só ao passar o mouse. -->
+  <DataTemplate x:Key="Card.Header" x:DataType="m:FlowStep">
+    <Grid ColumnDefinitions="3,Auto,*,Auto" MinHeight="38">
+      <Border Classes="selBar" Width="2" CornerRadius="1" Margin="0,10" HorizontalAlignment="Left" Background="{StaticResource GoldBrush}" />
+      <c:Icon Grid.Column="1" Width="15" Height="15" Margin="9,0,12,0" VerticalAlignment="Center"
+              Data="{Binding Icon, Converter={x:Static conv:IconKeyConverter.Instance}}"
+              Foreground="{StaticResource Text3Brush}" />
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" ClipToBounds="True">
+        <TextBlock Classes="stepTitle" Text="{Binding Summary}" TextTrimming="CharacterEllipsis" />
+        <Ellipse Width="10" Height="10" VerticalAlignment="Center" Stroke="#33FFFFFF" StrokeThickness="1"
+                 Fill="{Binding SwatchColor, Converter={x:Static conv:HexToBrushConverter.Instance}}"
+                 IsVisible="{Binding SwatchColor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </StackPanel>
+      <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="8,0,0,0">
+        <TextBlock Text="desativado" FontSize="11" Foreground="{StaticResource Text3Brush}" VerticalAlignment="Center"
+                   IsVisible="{Binding !Enabled}" />
+        <StackPanel Classes="stepActions" Orientation="Horizontal">
+          <v:StepMenuButton Theme="{StaticResource IconButton}" Width="26" Height="26" ToolTip.Tip="Mais ações (duplicar, mover, excluir…)">
+            <c:Icon Width="15" Height="15" Data="{StaticResource Icon.More}" StrokeThickness="3" />
+          </v:StepMenuButton>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+  </DataTemplate>
+
+  <!-- Passo simples -->
+  <DataTemplate x:Key="Card.Default" x:DataType="m:FlowStep">
+    <Panel Classes="appear">
+      <Border Classes="stepCard"
+              Classes.selected="{Binding IsSelected}" Classes.running="{Binding IsRunning}" Classes.off="{Binding !Enabled}">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource Card.Header}" />
+      </Border>
+    </Panel>
+  </DataTemplate>
+
+  <!-- Se / Senão -->
+  <DataTemplate x:Key="Card.IfStep" x:DataType="m:IfStep">
+    <Panel Classes="appear stepBlock" Classes.blockOff="{Binding !Enabled}">
+      <StackPanel>
+        <Border Classes="stepCard" Classes.selected="{Binding IsSelected}" Classes.running="{Binding IsRunning}">
+          <ContentControl Content="{Binding}" ContentTemplate="{StaticResource Card.Header}" />
+        </Border>
+        <Grid ColumnDefinitions="20,*">
+          <Border Classes="branchLine" />
+          <StackPanel Grid.Column="1">
+            <TextBlock Classes="branchLabel" Text="Se sim" />
+            <ItemsControl ItemsSource="{Binding Then}" ItemTemplate="{StaticResource StepCardSelector}" />
+            <v:AddStepButton Theme="{StaticResource AddHereButton}" TargetList="{Binding Then}" Content="+ adicionar" />
+            <TextBlock Classes="branchLabel" Text="Se não" />
+            <ItemsControl ItemsSource="{Binding Else}" ItemTemplate="{StaticResource StepCardSelector}" />
+            <v:AddStepButton Theme="{StaticResource AddHereButton}" TargetList="{Binding Else}" Content="+ adicionar" Margin="0,0,0,4" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Panel>
+  </DataTemplate>
+
+  <!-- Repetir -->
+  <DataTemplate x:Key="Card.RepeatStep" x:DataType="m:RepeatStep">
+    <Panel Classes="appear stepBlock" Classes.blockOff="{Binding !Enabled}">
+      <StackPanel>
+        <Border Classes="stepCard" Classes.selected="{Binding IsSelected}" Classes.running="{Binding IsRunning}">
+          <ContentControl Content="{Binding}" ContentTemplate="{StaticResource Card.Header}" />
+        </Border>
+        <Grid ColumnDefinitions="20,*">
+          <Border Classes="branchLine" />
+          <StackPanel Grid.Column="1">
+            <ItemsControl ItemsSource="{Binding Body}" ItemTemplate="{StaticResource StepCardSelector}" />
+            <v:AddStepButton Theme="{StaticResource AddHereButton}" TargetList="{Binding Body}" Content="+ adicionar" Margin="0,0,0,4" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Panel>
+  </DataTemplate>
+
+  <!-- Segurar enquanto -->
+  <DataTemplate x:Key="Card.HoldStep" x:DataType="m:HoldStep">
+    <Panel Classes="appear stepBlock" Classes.blockOff="{Binding !Enabled}">
+      <StackPanel>
+        <Border Classes="stepCard" Classes.selected="{Binding IsSelected}" Classes.running="{Binding IsRunning}">
+          <ContentControl Content="{Binding}" ContentTemplate="{StaticResource Card.Header}" />
+        </Border>
+        <Grid ColumnDefinitions="20,*">
+          <Border Classes="branchLine" />
+          <StackPanel Grid.Column="1">
+            <ItemsControl ItemsSource="{Binding Body}" ItemTemplate="{StaticResource StepCardSelector}" />
+            <v:AddStepButton Theme="{StaticResource AddHereButton}" TargetList="{Binding Body}" Content="+ adicionar" Margin="0,0,0,4" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Panel>
+  </DataTemplate>
+
+  <!-- Ao mesmo tempo (trilhas lado a lado) -->
+  <DataTemplate x:Key="Card.ParallelStep" x:DataType="m:ParallelStep">
+    <Panel Classes="appear stepBlock" Classes.blockOff="{Binding !Enabled}">
+      <StackPanel>
+        <Border Classes="stepCard" Classes.selected="{Binding IsSelected}" Classes.running="{Binding IsRunning}">
+          <ContentControl Content="{Binding}" ContentTemplate="{StaticResource Card.Header}" />
+        </Border>
+        <Grid ColumnDefinitions="20,*">
+          <Border Classes="branchLine" />
+          <StackPanel Grid.Column="1" Spacing="6">
+            <ItemsControl ItemsSource="{Binding Tracks}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Rows="1" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="m:ParallelTrack">
+                  <Border Classes="trackColumn" Margin="0,0,8,0">
+                    <StackPanel>
+                      <Grid ColumnDefinitions="*,Auto" Margin="2,0,0,2">
+                        <TextBlock Classes="branchLabel" Margin="0" VerticalAlignment="Center" Text="trilha" />
+                        <Button Grid.Column="1" Theme="{StaticResource IconButton}" Width="22" Height="22"
+                                ToolTip.Tip="Remover esta trilha"
+                                IsVisible="{Binding $parent[ItemsControl].((m:ParallelStep)DataContext).CanRemoveTracks}"
+                                Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).RemoveTrackCommand}"
+                                CommandParameter="{Binding}">
+                          <c:Icon Width="12" Height="12" Data="{StaticResource Icon.Close}" StrokeThickness="2" />
+                        </Button>
+                      </Grid>
+                      <ItemsControl ItemsSource="{Binding Steps}" ItemTemplate="{StaticResource StepCardSelector}" />
+                      <v:AddStepButton Theme="{StaticResource AddHereButton}" TargetList="{Binding Steps}" Content="+ adicionar" Margin="0,0,0,4" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Theme="{StaticResource AddHereButton}" Content="+ trilha" Margin="0,0,0,4"
+                    ToolTip.Tip="Acrescentar outra trilha que roda ao mesmo tempo"
+                    Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).AddTrackCommand}"
+                    CommandParameter="{Binding}" />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Panel>
+  </DataTemplate>
+</ResourceDictionary>

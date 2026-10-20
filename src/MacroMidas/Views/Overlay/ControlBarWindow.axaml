@@ -1,0 +1,73 @@
+<ov:OverlayWindow xmlns="https://github.com/avaloniaui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:ov="using:MacroMidas.Views.Overlay"
+                  xmlns:vm="using:MacroMidas.ViewModels"
+                  xmlns:c="using:MacroMidas.Controls"
+                  x:Class="MacroMidas.Views.Overlay.ControlBarWindow"
+                  x:DataType="vm:ControlBarViewModel"
+                  Title="Macro Midas: Controle"
+                  SizeToContent="WidthAndHeight">
+  <Border x:Name="Bar"
+          Margin="16"
+          Padding="14,8,10,8"
+          CornerRadius="16"
+          Background="#EB141415"
+          BorderBrush="#1FFFFFFF"
+          BorderThickness="1"
+          BoxShadow="0 10 30 0 #66000000">
+    <Border.Transitions>
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+      </Transitions>
+    </Border.Transitions>
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <!-- Status: um ponto que pulsa (dourado rodando, vermelho gravando) -->
+      <Panel Width="8" Height="8" VerticalAlignment="Center">
+        <Ellipse Classes="pulseDot" Fill="{StaticResource GoldBrush}" IsVisible="{Binding !IsRecording}" />
+        <Ellipse Classes="pulseDot" Fill="{StaticResource DangerBrush}" IsVisible="{Binding IsRecording}" />
+      </Panel>
+
+      <StackPanel VerticalAlignment="Center" MinWidth="170" MaxWidth="320" Spacing="1">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextTrimming="CharacterEllipsis" MaxWidth="220" />
+          <Border Classes="chip" IsVisible="{Binding IsLock}" Padding="6,0">
+            <TextBlock Text="LOCK" FontSize="9.5" />
+          </Border>
+        </StackPanel>
+        <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{StaticResource Text2Brush}" TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+
+      <!-- Execução -->
+      <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding !IsRecording}">
+        <Button Theme="{StaticResource GhostButton}" Classes="outline" Command="{Binding PauseCommand}" Padding="10,6">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <c:Icon Width="13" Height="13" Filled="True" Data="{StaticResource Icon.Pause}" IsVisible="{Binding !IsPaused}" />
+            <c:Icon Width="13" Height="13" Filled="True" Data="{StaticResource Icon.Play}" IsVisible="{Binding IsPaused}" />
+            <TextBlock Text="{Binding PauseLabel}" FontSize="12" />
+          </StackPanel>
+        </Button>
+        <Button Theme="{StaticResource GhostButton}" Classes="outline danger" Command="{Binding StopCommand}" Padding="10,6"
+                ToolTip.Tip="{Binding StopHint}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <c:Icon Width="13" Height="13" Filled="True" Data="{StaticResource Icon.Stop}" />
+            <TextBlock Text="{Binding StopLabel}" FontSize="12" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+
+      <!-- Gravação -->
+      <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding IsRecording}">
+        <Button Theme="{StaticResource GoldButton}" Command="{Binding StopRecordingCommand}" Padding="12,6">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <c:Icon Width="13" Height="13" Data="{StaticResource Icon.Check}" StrokeThickness="2.6" />
+            <TextBlock Text="Concluir" FontSize="12" />
+          </StackPanel>
+        </Button>
+        <Button Theme="{StaticResource GhostButton}" Classes="outline" Command="{Binding CancelRecordingCommand}" Padding="10,6">
+          <TextBlock Text="Descartar" FontSize="12" />
+        </Button>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</ov:OverlayWindow>

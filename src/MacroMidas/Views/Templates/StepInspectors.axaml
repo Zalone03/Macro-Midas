@@ -1,0 +1,666 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:m="using:MacroMidas.Models"
+                    xmlns:v="using:MacroMidas.Views"
+                    xmlns:vm="using:MacroMidas.ViewModels"
+                    xmlns:c="using:MacroMidas.Controls"
+                    xmlns:conv="using:MacroMidas.Converters">
+
+  <!-- Painel de propriedades: o essencial à vista, o resto em "Mais opções". -->
+  <v:StepTemplateSelector x:Key="InspectorSelector" Prefix="Inspector" />
+
+  <DataTemplate x:Key="Inspector.Default" x:DataType="m:FlowStep">
+    <TextBlock Classes="fieldHelp" Text="Este passo não tem opções." />
+  </DataTemplate>
+
+  <!-- Clicar -->
+  <DataTemplate x:Key="Inspector.ClickStep" x:DataType="m:ClickStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Botão" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Esquerdo" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Left}" />
+            <RadioButton Content="Direito" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Right}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Tipo de clique" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Simples" IsChecked="{Binding Clicks, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=1}" />
+            <RadioButton Content="Duplo" IsChecked="{Binding Clicks, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=2}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Onde clicar" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Onde o mouse está" IsChecked="{Binding UsePosition, Converter={x:Static conv:BoolEqualsConverter.Instance}, ConverterParameter=False}" />
+            <RadioButton Content="Ponto fixo" IsChecked="{Binding UsePosition, Converter={x:Static conv:BoolEqualsConverter.Instance}, ConverterParameter=True}" />
+          </UniformGrid>
+        </Border>
+        <v:PointField Margin="0,10,0,0" IsVisible="{Binding UsePosition}" X="{Binding X}" Y="{Binding Y}" PickTarget="Point" />
+        <TextBlock Classes="fieldHelp" IsVisible="{Binding UsePosition}" Text="Clique em “Escolher na tela” e depois no lugar onde o clique deve acontecer." />
+        <TextBlock Classes="fieldHelp" IsVisible="{Binding !UsePosition}" Text="No modo Lock vale o ponto onde o mouse estava ao iniciar. Depois você pode mexer à vontade." />
+      </StackPanel>
+
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Segurar o botão por (segundos)" />
+        <NumericUpDown Value="{Binding HoldMs, Converter={x:Static conv:MsToSecondsConverter.Instance}}" Minimum="0" Maximum="600" Increment="0.1" FormatString="0.##" />
+        <TextBlock Classes="fieldHelp" Text="0 = clique rápido. Aumente para segurar o botão apertado antes de soltar (ex.: 2 = segura 2 segundos)." />
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Outros botões" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Meio" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Middle}" />
+              <RadioButton Content="Lateral 1" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=X1}" />
+              <RadioButton Content="Lateral 2" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=X2}" />
+            </UniformGrid>
+          </Border>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Quantidade de cliques" />
+          <NumericUpDown Value="{Binding Clicks}" Minimum="1" Maximum="1000" FormatString="0" />
+          <TextBlock Classes="fieldHelp" Text="Para clicar 3 ou mais vezes seguidas." />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Intervalo entre cliques (ms)" />
+          <NumericUpDown Value="{Binding IntervalMs}" Minimum="1" Maximum="60000" Increment="10" FormatString="0" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Mover -->
+  <DataTemplate x:Key="Inspector.MoveStep" x:DataType="m:MoveStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Para onde" />
+        <v:PointField X="{Binding X}" Y="{Binding Y}" PickTarget="Point" />
+        <TextBlock Classes="fieldHelp" Text="Escolha na tela o ponto para onde o cursor vai." />
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Movimento suave (ms)" />
+          <NumericUpDown Value="{Binding DurationMs}" Minimum="0" Maximum="600000" Increment="50" FormatString="0" />
+          <TextBlock Classes="fieldHelp" Text="0 = pula direto. Acima de 0, o cursor desliza até o ponto." />
+        </StackPanel>
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="Mover a partir de onde está" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Os números viram deslocamento (ex.: 10 = 10 px para a direita)." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Relative}" VerticalAlignment="Center" />
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Arrastar -->
+  <DataTemplate x:Key="Inspector.DragStep" x:DataType="m:DragStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Começa em" />
+        <v:PointField X="{Binding FromX}" Y="{Binding FromY}" PickTarget="From" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Termina em" />
+        <v:PointField X="{Binding ToX}" Y="{Binding ToY}" PickTarget="To" />
+        <TextBlock Classes="fieldHelp" Text="O botão fica apertado durante todo o caminho e é solto no fim." />
+      </StackPanel>
+      <StackPanel IsVisible="{Binding HasPath}" Spacing="8">
+        <TextBlock Classes="fieldHelp" Margin="0" Text="{Binding PathInfo}" />
+        <Button Theme="{StaticResource GhostButton}" Classes="outline" HorizontalAlignment="Left" Padding="10,5"
+                Content="Ir em linha reta (esquecer o trajeto)"
+                Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ClearDragPathCommand}" />
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Botão" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Esquerdo" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Left}" />
+              <RadioButton Content="Direito" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Right}" />
+              <RadioButton Content="Meio" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Middle}" />
+            </UniformGrid>
+          </Border>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Duração do arrasto (ms)" />
+          <NumericUpDown Value="{Binding DurationMs}" Minimum="10" Maximum="600000" Increment="50" FormatString="0" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Espera antes de mover (ms)" />
+          <NumericUpDown Value="{Binding HoldMs}" Minimum="0" Maximum="10000" Increment="10" FormatString="0" />
+          <TextBlock Classes="fieldHelp" Text="Alguns programas precisam de um instante com o botão apertado." />
+        </StackPanel>
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="Movimento relativo (para jogos)" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Ligue se o arrasto não funciona num jogo (Roblox etc.): move por deslocamento, que jogos reconhecem. Em apps normais, deixe desligado." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding RelativeMotion}" VerticalAlignment="Center" Margin="10,0,0,0" />
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Caminho do mouse (gravado) -->
+  <DataTemplate x:Key="Inspector.MousePathStep" x:DataType="m:MousePathStep">
+    <StackPanel Spacing="14">
+      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto">
+        <TextBlock Classes="label" Text="Começa em" />
+        <TextBlock Grid.Column="1" Text="{Binding StartText}" HorizontalAlignment="Right" />
+        <TextBlock Grid.Row="2" Classes="label" Text="Termina em" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding EndText}" HorizontalAlignment="Right" />
+        <TextBlock Grid.Row="4" Classes="label" Text="Duração" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding DurationText}" HorizontalAlignment="Right" />
+        <TextBlock Grid.Row="6" Classes="label" Text="Pontos gravados" />
+        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding PointCount}" HorizontalAlignment="Right" />
+      </Grid>
+      <TextBlock Classes="fieldHelp" Text="Refaz o movimento exatamente como você fez, ponto a ponto e no mesmo ritmo. Para mudar, grave de novo." />
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Girar a câmera (gravado) -->
+  <DataTemplate x:Key="Inspector.MouseLookStep" x:DataType="m:MouseLookStep">
+    <StackPanel Spacing="14">
+      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,6,Auto,6,Auto">
+        <TextBlock Classes="label" Text="Duração" />
+        <TextBlock Grid.Column="1" Text="{Binding DurationText}" HorizontalAlignment="Right" />
+        <TextBlock Grid.Row="2" Classes="label" Text="Movimentos gravados" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PointCount}" HorizontalAlignment="Right" />
+        <TextBlock Grid.Row="4" Classes="label" Text="Deslocamento total" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TotalText}" HorizontalAlignment="Right" />
+      </Grid>
+      <TextBlock Classes="fieldHelp" Text="Gravado com o cursor escondido (ex.: segurar o botão direito e girar a câmera num jogo). Refaz o mesmo movimento, no mesmo ritmo. Só funciona com o modo Lock desligado." />
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Segurar / soltar -->
+  <DataTemplate x:Key="Inspector.MouseButtonStep" x:DataType="m:MouseButtonStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="O que fazer" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Segurar" IsChecked="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Press}" />
+            <RadioButton Content="Soltar" IsChecked="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Release}" />
+          </UniformGrid>
+        </Border>
+        <TextBlock Classes="fieldHelp" Text="Depois de “Segurar”, use “Mover” e por fim um passo “Soltar”." />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Botão" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Esquerdo" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Left}" />
+            <RadioButton Content="Direito" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Right}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Outros botões" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Meio" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Middle}" />
+              <RadioButton Content="Lateral 1" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=X1}" />
+              <RadioButton Content="Lateral 2" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=X2}" />
+            </UniformGrid>
+          </Border>
+        </StackPanel>
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="Ir até um ponto antes" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Move o cursor para um lugar antes de segurar/soltar." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding UsePosition}" VerticalAlignment="Center" />
+        </Grid>
+        <v:PointField IsVisible="{Binding UsePosition}" X="{Binding X}" Y="{Binding Y}" PickTarget="Point" />
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Rolar -->
+  <DataTemplate x:Key="Inspector.ScrollStep" x:DataType="m:ScrollStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Onde rolar" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Ponto fixo" IsChecked="{Binding UsePosition, Converter={x:Static conv:BoolEqualsConverter.Instance}, ConverterParameter=True}" />
+            <RadioButton Content="Onde o mouse está" IsChecked="{Binding UsePosition, Converter={x:Static conv:BoolEqualsConverter.Instance}, ConverterParameter=False}" />
+          </UniformGrid>
+        </Border>
+        <v:PointField Margin="0,10,0,0" IsVisible="{Binding UsePosition}" X="{Binding X}" Y="{Binding Y}" PickTarget="Point" />
+        <TextBlock Classes="fieldHelp" IsVisible="{Binding UsePosition}" Text="Clique em “Escolher na tela” e depois em cima do que deve rolar (a página, a lista…)." />
+      </StackPanel>
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Clicar no ponto antes de rolar" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="Garante que a janela certa recebe a rolagem, como quando você clica antes." />
+        </StackPanel>
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding ClickFirst}" VerticalAlignment="Center" Margin="10,0,0,0" />
+      </Grid>
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Direção" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Para baixo" IsChecked="{Binding Direction, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Down}" />
+            <RadioButton Content="Para cima" IsChecked="{Binding Direction, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Up}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Quantidade" />
+        <NumericUpDown Value="{Binding Amount}" Minimum="1" Maximum="1000" FormatString="0" />
+        <TextBlock Classes="fieldHelp" Text="Cada unidade é um “clique” da rodinha do mouse." />
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Rolar para os lados" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Esquerda" IsChecked="{Binding Direction, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Left}" />
+              <RadioButton Content="Direita" IsChecked="{Binding Direction, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Right}" />
+            </UniformGrid>
+          </Border>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Intervalo entre cliques da rodinha (ms)" />
+          <NumericUpDown Value="{Binding IntervalMs}" Minimum="1" Maximum="10000" Increment="10" FormatString="0" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Tecla -->
+  <DataTemplate x:Key="Inspector.KeyStep" x:DataType="m:KeyStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Tecla ou atalho" />
+        <c:KeyCaptureBox Text="{Binding Keys}" FontFamily="{StaticResource MonoFont}" />
+        <TextBlock Classes="fieldHelp" Text="Clique no ícone do campo e aperte a tecla. Ou escreva, por exemplo: Enter, Ctrl+C, F5." />
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Press}">
+        <TextBlock Classes="fieldLabel" Text="Segurar a tecla por (segundos)" />
+        <NumericUpDown Value="{Binding HoldMs, Converter={x:Static conv:MsToSecondsConverter.Instance}}" Minimum="0" Maximum="600" Increment="0.1" FormatString="0.##" />
+        <TextBlock Classes="fieldHelp" Text="0 = toque rápido. Aumente para segurar a tecla (ex.: andar segurando W por 2 segundos)." />
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="O que fazer" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Apertar" IsChecked="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Press}" />
+              <RadioButton Content="Segurar" IsChecked="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Down}" />
+              <RadioButton Content="Soltar" IsChecked="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Up}" />
+            </UniformGrid>
+          </Border>
+          <TextBlock Classes="fieldHelp" Text="“Segurar” deixa a tecla apertada até um passo “Soltar”." />
+        </StackPanel>
+        <StackPanel IsVisible="{Binding Action, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Press}" Spacing="16">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="Quantas vezes apertar" />
+            <NumericUpDown Value="{Binding Times}" Minimum="1" Maximum="10000" FormatString="0" />
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="Intervalo entre as vezes (ms)" />
+            <NumericUpDown Value="{Binding IntervalMs}" Minimum="1" Maximum="60000" Increment="10" FormatString="0" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Digitar -->
+  <DataTemplate x:Key="Inspector.TypeTextStep" x:DataType="m:TypeTextStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Texto" />
+        <TextBox Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="240" />
+        <TextBlock Classes="fieldHelp" Text="Acentos e emojis funcionam. Enter quebra a linha." />
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Pausa entre as letras (ms)" />
+          <NumericUpDown Value="{Binding CharDelayMs}" Minimum="0" Maximum="5000" Increment="5" FormatString="0" />
+          <TextBlock Classes="fieldHelp" Text="Aumente se o programa perder letras." />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Esperar -->
+  <DataTemplate x:Key="Inspector.WaitStep" x:DataType="m:WaitStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Quanto tempo (segundos)" />
+        <NumericUpDown Value="{Binding Ms, Converter={x:Static conv:MsToSecondsConverter.Instance}}" Minimum="0" Maximum="86400" Increment="0.5" FormatString="0.##" />
+        <WrapPanel Margin="0,8,0,0">
+          <Button Theme="{StaticResource GhostButton}" Classes="outline" Margin="0,0,6,0" Padding="9,3" FontSize="12" Content="0,5 s"
+                  Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).SetWaitCommand}" CommandParameter="500" />
+          <Button Theme="{StaticResource GhostButton}" Classes="outline" Margin="0,0,6,0" Padding="9,3" FontSize="12" Content="1 s"
+                  Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).SetWaitCommand}" CommandParameter="1000" />
+          <Button Theme="{StaticResource GhostButton}" Classes="outline" Margin="0,0,6,0" Padding="9,3" FontSize="12" Content="2 s"
+                  Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).SetWaitCommand}" CommandParameter="2000" />
+          <Button Theme="{StaticResource GhostButton}" Classes="outline" Padding="9,3" FontSize="12" Content="5 s"
+                  Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).SetWaitCommand}" CommandParameter="5000" />
+        </WrapPanel>
+      </StackPanel>
+
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="Tempo variável" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Sorteia um tempo entre o valor acima e o máximo." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Random}" VerticalAlignment="Center" />
+        </Grid>
+        <StackPanel IsVisible="{Binding Random}">
+          <TextBlock Classes="fieldLabel" Text="Máximo (segundos)" />
+          <NumericUpDown Value="{Binding MaxMs, Converter={x:Static conv:MsToSecondsConverter.Instance}}" Minimum="0" Maximum="86400" Increment="0.5" FormatString="0.##" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Condição: parte principal -->
+  <DataTemplate x:Key="ConditionMain" x:DataType="m:Condition">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="O que verificar" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="A cor de um ponto" IsChecked="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=PixelColor}" />
+            <RadioButton Content="Uma janela aberta" IsChecked="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=WindowExists}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding UsesColor}" Spacing="18">
+        <StackPanel IsVisible="{Binding UsesPixel}">
+          <TextBlock Classes="fieldLabel" Text="Ponto e cor" />
+          <v:PointField X="{Binding X}" Y="{Binding Y}" PickTarget="Pixel" />
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+            <Border Width="14" Height="14" CornerRadius="7" BorderBrush="#33FFFFFF" BorderThickness="1"
+                    Background="{Binding Color, Converter={x:Static conv:HexToBrushConverter.Instance}}" VerticalAlignment="Center" />
+            <TextBlock FontSize="12" Foreground="{StaticResource Text2Brush}" VerticalAlignment="Center">
+              <Run Text="Cor guardada:" />
+              <Run Text="{Binding Color}" />
+            </TextBlock>
+          </StackPanel>
+          <TextBlock Classes="fieldHelp" Text="Aponte o lugar na tela: a posição e a cor desse ponto são guardadas juntas." />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Semelhança da cor" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Exata" IsChecked="{Binding Tolerance, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=0}" />
+              <RadioButton Content="Parecida" IsChecked="{Binding Tolerance, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=24}" />
+              <RadioButton Content="Aproximada" IsChecked="{Binding Tolerance, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=64}" />
+            </UniformGrid>
+          </Border>
+          <TextBlock Classes="fieldHelp" Text="Quanto a cor pode variar e ainda contar como a mesma. “Parecida” serve na maioria dos casos." />
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding UsesWindow}">
+        <TextBlock Classes="fieldLabel" Text="Nome da janela" />
+        <Grid ColumnDefinitions="*,6,Auto">
+          <TextBox Text="{Binding WindowTitle}" Watermark="ex.: Bloco de Notas" />
+          <Button Grid.Column="2" Theme="{StaticResource GhostButton}" Classes="outline" Padding="10,6" ToolTip.Tip="Clicar na janela desejada"
+                  Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).PickCommand}" CommandParameter="CondWindow">
+            <TextBlock Text="Escolher" />
+          </Button>
+        </Grid>
+        <TextBlock Classes="fieldHelp" Text="Basta um pedaço do título que aparece na barra da janela." />
+      </StackPanel>
+
+      <Button Theme="{StaticResource GhostButton}" Classes="outline" HorizontalAlignment="Left" Padding="10,5"
+              ToolTip.Tip="Confere agora, sem rodar o fluxo, e mostra o resultado"
+              Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).TestConditionCommand}">
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <c:Icon Width="13" Height="13" Data="{StaticResource Icon.Zap}" />
+          <TextBlock Text="Testar agora" FontSize="12.5" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Condição: mais opções -->
+  <DataTemplate x:Key="ConditionAdvanced" x:DataType="m:Condition">
+    <StackPanel Spacing="16">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Outros tipos de verificação" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Cor numa área" IsChecked="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=ColorInRegion}" />
+            <RadioButton Content="Janela em uso" IsChecked="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=WindowActive}" />
+          </UniformGrid>
+        </Border>
+        <TextBlock Classes="fieldHelp" Text="“Cor numa área” procura a cor num retângulo. “Janela em uso” confere se a janela está na frente." />
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding UsesRegion}" Spacing="8">
+        <TextBlock Classes="fieldLabel" Text="Área" Margin="0" />
+        <Button Theme="{StaticResource GhostButton}" Classes="outline" HorizontalAlignment="Left" Padding="10,6"
+                Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).PickCommand}" CommandParameter="Region">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <c:Icon Width="14" Height="14" Data="{StaticResource Icon.Crosshair}" />
+            <TextBlock Text="Selecionar área na tela" />
+          </StackPanel>
+        </Button>
+        <TextBlock FontSize="12" Foreground="{StaticResource Text2Brush}">
+          <Run Text="{Binding X}" /><Run Text=", " /><Run Text="{Binding Y}" />
+          <Run Text=" · " /><Run Text="{Binding Width}" /><Run Text="×" /><Run Text="{Binding Height}" />
+        </TextBlock>
+      </StackPanel>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Inverter" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="Vale quando a condição NÃO acontece." />
+        </StackPanel>
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding Negate}" VerticalAlignment="Center" />
+      </Grid>
+
+      <StackPanel IsVisible="{Binding UsesColor}" Spacing="16">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Cor (código)" />
+          <Grid ColumnDefinitions="*,6,Auto">
+            <TextBox Text="{Binding Color}" FontFamily="{StaticResource MonoFont}" />
+            <Button Grid.Column="2" Theme="{StaticResource GhostButton}" Classes="outline" Padding="10,6" ToolTip.Tip="Pegar só a cor de outro ponto, sem mudar a posição"
+                    Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).PickCommand}" CommandParameter="Color">
+              <TextBlock Text="Pegar cor" />
+            </Button>
+          </Grid>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Tolerância (0 a 255)" />
+          <NumericUpDown Value="{Binding Tolerance}" Minimum="0" Maximum="255" FormatString="0" />
+          <TextBlock Classes="fieldHelp" Text="0 = cor idêntica. Quanto maior, mais variação é aceita." />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Se -->
+  <DataTemplate x:Key="Inspector.IfStep" x:DataType="m:IfStep">
+    <StackPanel Spacing="18">
+      <ContentControl Content="{Binding Condition}" ContentTemplate="{StaticResource ConditionMain}" />
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <ContentControl Content="{Binding Condition}" ContentTemplate="{StaticResource ConditionAdvanced}"
+                      IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Esperar até -->
+  <DataTemplate x:Key="Inspector.WaitUntilStep" x:DataType="m:WaitUntilStep">
+    <StackPanel Spacing="18">
+      <ContentControl Content="{Binding Condition}" ContentTemplate="{StaticResource ConditionMain}" />
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Desistir depois de (segundos)" />
+        <NumericUpDown Value="{Binding TimeoutMs, Converter={x:Static conv:MsToSecondsConverter.Instance}}" Minimum="0" Maximum="86400" Increment="1" FormatString="0.##" />
+        <TextBlock Classes="fieldHelp" Text="0 = esperar para sempre." />
+      </StackPanel>
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+      <StackPanel Spacing="16" IsVisible="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Se desistir" />
+          <Border Classes="segmented">
+            <UniformGrid Rows="1">
+              <RadioButton Content="Continuar" IsChecked="{Binding OnTimeout, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Continue}" />
+              <RadioButton Content="Parar" IsChecked="{Binding OnTimeout, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=StopFlow}" />
+              <RadioButton Content="Recomeçar" IsChecked="{Binding OnTimeout, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=NextIteration}" />
+            </UniformGrid>
+          </Border>
+          <TextBlock Classes="fieldHelp" Text="O que acontece se o tempo acabar: seguir, parar o fluxo ou recomeçar do início." />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Conferir a cada (ms)" />
+          <NumericUpDown Value="{Binding PollMs}" Minimum="5" Maximum="60000" Increment="10" FormatString="0" />
+        </StackPanel>
+        <ContentControl Content="{Binding Condition}" ContentTemplate="{StaticResource ConditionAdvanced}" />
+      </StackPanel>
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Repetir -->
+  <DataTemplate x:Key="Inspector.RepeatStep" x:DataType="m:RepeatStep">
+    <StackPanel Spacing="18">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="Repetir sem parar" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="Continua até um passo “Parar” ou até você parar o fluxo." />
+        </StackPanel>
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding Count, Converter={x:Static conv:ZeroIsInfiniteConverter.Instance}}" VerticalAlignment="Center" />
+      </Grid>
+      <StackPanel IsVisible="{Binding Count, Converter={x:Static conv:PositiveConverter.Instance}}">
+        <TextBlock Classes="fieldLabel" Text="Quantas vezes" />
+        <NumericUpDown Value="{Binding Count}" Minimum="1" Maximum="10000000" FormatString="0" />
+        <TextBlock Classes="fieldHelp" Text="Os passos de dentro do bloco rodam esse número de vezes." />
+      </StackPanel>
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Segurar enquanto -->
+  <DataTemplate x:Key="Inspector.HoldStep" x:DataType="m:HoldStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="O que segurar" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Uma tecla" IsChecked="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Key}" />
+            <RadioButton Content="Botão do mouse" IsChecked="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=MouseButton}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Key}">
+        <TextBlock Classes="fieldLabel" Text="Tecla" />
+        <c:KeyCaptureBox Text="{Binding Keys}" FontFamily="{StaticResource MonoFont}" />
+        <TextBlock Classes="fieldHelp" Text="Ex.: W (andar). Fica apertada enquanto os passos de dentro rodam." />
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding Kind, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=MouseButton}">
+        <TextBlock Classes="fieldLabel" Text="Botão" />
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Esquerdo" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Left}" />
+            <RadioButton Content="Direito" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Right}" />
+            <RadioButton Content="Meio" IsChecked="{Binding Button, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Middle}" />
+          </UniformGrid>
+        </Border>
+      </StackPanel>
+
+      <TextBlock Classes="fieldHelp" Text="Adicione os passos dentro do bloco (clicar, esperar…): eles acontecem com a tecla/botão apertado. No fim, solta sozinho." />
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Ao mesmo tempo -->
+  <DataTemplate x:Key="Inspector.ParallelStep" x:DataType="m:ParallelStep">
+    <StackPanel Spacing="18">
+      <TextBlock Classes="fieldHelp"
+                 Text="Cada trilha roda ao mesmo tempo que as outras. Monte os passos de cada trilha no bloco, ex.: uma segura W (anda) e a outra clica. O bloco termina quando todas as trilhas terminam." />
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Trilhas" />
+        <TextBlock Classes="fieldHelp" Text="{Binding TrackCount, StringFormat='{}{0} trilhas rodando lado a lado.'}" />
+      </StackPanel>
+      <Button Theme="{StaticResource AddRowButton}" Content="+ Adicionar trilha"
+              Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).AddTrackCommand}"
+              CommandParameter="{Binding}" />
+      <TextBlock Classes="fieldHelp"
+                 Text="Em jogos com anti-cheat (Roblox, por ex.), várias entradas ao mesmo tempo podem ser barradas; fora isso, funciona em qualquer app." />
+    </StackPanel>
+  </DataTemplate>
+
+  <!-- Parar -->
+  <DataTemplate x:Key="Inspector.StopStep" x:DataType="m:StopStep">
+    <StackPanel Spacing="18">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="O que fazer" />
+        <Border Classes="segmented">
+          <StackPanel Spacing="2">
+            <RadioButton HorizontalContentAlignment="Left" IsChecked="{Binding Mode, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=StopFlow}">
+              <StackPanel Spacing="1" Margin="2,2">
+                <TextBlock Text="Parar o fluxo" />
+                <TextBlock Text="Encerra tudo na hora." FontSize="11" Opacity="0.6" FontWeight="Normal" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton IsChecked="{Binding Mode, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=NextIteration}">
+              <StackPanel Spacing="1" Margin="2,2">
+                <TextBlock Text="Recomeçar do início" />
+                <TextBlock Text="Pula o resto e começa o próximo ciclo." FontSize="11" Opacity="0.6" FontWeight="Normal" />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton IsChecked="{Binding Mode, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=BreakLoop}">
+              <StackPanel Spacing="1" Margin="2,2">
+                <TextBlock Text="Sair do “Repetir”" />
+                <TextBlock Text="Continua depois do bloco Repetir." FontSize="11" Opacity="0.6" FontWeight="Normal" />
+              </StackPanel>
+            </RadioButton>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+      <ToggleButton Theme="{StaticResource MoreToggle}" Content="Mais opções"
+                    IsChecked="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).ShowAdvanced}" />
+    </StackPanel>
+  </DataTemplate>
+</ResourceDictionary>

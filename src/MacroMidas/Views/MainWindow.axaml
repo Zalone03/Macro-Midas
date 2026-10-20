@@ -1,0 +1,202 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MacroMidas.ViewModels"
+        xmlns:v="using:MacroMidas.Views"
+        xmlns:m="using:MacroMidas.Models"
+        xmlns:c="using:MacroMidas.Controls"
+        xmlns:conv="using:MacroMidas.Converters"
+        x:Class="MacroMidas.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Macro Midas"
+        Icon="/Assets/midas.ico"
+        Width="1000" Height="660" MinWidth="680" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Topmost="{Binding Settings.AlwaysOnTop}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="34">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:FlowEditorViewModel">
+      <v:FlowEditorView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SettingsViewModel">
+      <v:SettingsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HomeViewModel">
+      <v:HomeView />
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Panel>
+    <Grid RowDefinitions="34,Auto,*">
+
+      <!-- Barra de título com menu clássico -->
+      <Border x:Name="TitleBar" Background="Transparent">
+        <Grid ColumnDefinitions="Auto,Auto,*,140">
+          <c:Icon Width="13" Height="13" Margin="14,0,8,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                  Data="{StaticResource Icon.Logo}" Foreground="{StaticResource GoldTextGradient}" StrokeThickness="2.8" />
+
+          <Menu Grid.Column="1" Classes="appMenu" VerticalAlignment="Center">
+            <MenuItem Header="Arquivo">
+              <MenuItem Header="Novo fluxo" InputGesture="Ctrl+N" Command="{Binding NewFlowCommand}" />
+              <MenuItem Header="Abrir…" InputGesture="Ctrl+O" Command="{Binding ImportCommand}" />
+              <Separator />
+              <MenuItem Header="Exportar (.mmf)…" Command="{Binding ExportCommand}" CommandParameter="mmf" IsEnabled="{Binding HasFlow}" />
+              <MenuItem Header="Exportar como texto (.txt)…" Command="{Binding ExportCommand}" CommandParameter="txt" IsEnabled="{Binding HasFlow}" />
+              <Separator />
+              <MenuItem Header="Duplicar fluxo" Command="{Binding DuplicateFlowCommand}" CommandParameter="{x:Null}" IsEnabled="{Binding HasFlow}" />
+              <MenuItem Header="Apagar fluxo" Command="{Binding DeleteFlowCommand}" CommandParameter="{x:Null}" IsEnabled="{Binding HasFlow}" />
+              <Separator />
+              <MenuItem Header="Sair" InputGesture="Alt+F4" Click="OnExitClicked" />
+            </MenuItem>
+
+            <MenuItem Header="Editar" IsEnabled="{Binding HasFlow}">
+              <MenuItem Header="Desfazer" InputGesture="Ctrl+Z" Command="{Binding UndoCommand}" IsEnabled="{Binding Editor.CanUndo, FallbackValue=False}" />
+              <MenuItem Header="Refazer" InputGesture="Ctrl+Y" Command="{Binding RedoCommand}" IsEnabled="{Binding Editor.CanRedo, FallbackValue=False}" />
+              <Separator />
+              <MenuItem Header="Copiar passo" InputGesture="Ctrl+C" Command="{Binding CopyStepCommand}" IsEnabled="{Binding Editor.HasSelection, FallbackValue=False}" />
+              <MenuItem Header="Colar passo" InputGesture="Ctrl+V" Command="{Binding PasteStepCommand}" />
+              <MenuItem Header="Duplicar passo" InputGesture="Ctrl+D" Command="{Binding DuplicateStepCommand}" IsEnabled="{Binding Editor.HasSelection, FallbackValue=False}" />
+              <MenuItem Header="Excluir passo" InputGesture="Delete" Command="{Binding DeleteStepCommand}" IsEnabled="{Binding Editor.HasSelection, FallbackValue=False}" />
+              <Separator />
+              <MenuItem Header="Limpar todos os passos…" Command="{Binding ClearStepsCommand}" IsEnabled="{Binding !Editor.IsEmpty, FallbackValue=False}" />
+            </MenuItem>
+
+            <MenuItem Header="Executar" IsEnabled="{Binding HasFlow}">
+              <MenuItem Header="{Binding StartMenuText}" Command="{Binding StartSelectedCommand}" IsEnabled="{Binding CanStart}"
+                        InputGesture="{Binding Settings.Hotkeys.Start, Converter={x:Static conv:HotkeyGestureConverter.Instance}}" />
+              <MenuItem Header="Pausar / continuar" Command="{Binding TogglePauseCommand}" IsEnabled="{Binding IsRunning}"
+                        InputGesture="{Binding Settings.Hotkeys.Pause, Converter={x:Static conv:HotkeyGestureConverter.Instance}}" />
+              <MenuItem Header="Parar (2× para na hora)" Command="{Binding StopCommand}" IsEnabled="{Binding IsBusy}"
+                        InputGesture="{Binding Settings.Hotkeys.Stop, Converter={x:Static conv:HotkeyGestureConverter.Instance}}" />
+              <MenuItem Header="{Binding RecordMenuText}" Command="{Binding ToggleRecordCommand}" IsEnabled="{Binding !IsRunning}"
+                        InputGesture="{Binding Settings.Hotkeys.Record, Converter={x:Static conv:HotkeyGestureConverter.Instance}}" />
+              <Separator />
+              <MenuItem Header="Repetir sem parar (loop)" ToggleType="CheckBox"
+                        IsChecked="{Binding SelectedFlow.Settings.RepeatMode, Mode=TwoWay, Converter={x:Static conv:RepeatInfiniteConverter.Instance}}" />
+              <MenuItem Header="Opções de execução…" Click="OnRunOptionsClicked" />
+              <MenuItem Header="Registro da execução" ToggleType="CheckBox" IsChecked="{Binding IsLogOpen, Mode=TwoWay}" />
+            </MenuItem>
+
+            <MenuItem Header="Opções">
+              <MenuItem Header="Configurações…" Command="{Binding OpenSettingsCommand}" />
+              <Separator />
+              <MenuItem Header="Borda na tela durante a execução" ToggleType="CheckBox" IsChecked="{Binding Settings.Overlay.Enabled, Mode=TwoWay}" />
+              <MenuItem Header="Barra Pausar / Parar" ToggleType="CheckBox" IsChecked="{Binding Settings.Overlay.ControlBar, Mode=TwoWay}" />
+              <MenuItem Header="Sempre no topo" ToggleType="CheckBox" IsChecked="{Binding Settings.AlwaysOnTop, Mode=TwoWay}" />
+            </MenuItem>
+
+            <MenuItem Header="Ajuda">
+              <MenuItem Header="Como usar" Command="{Binding ShowHelpCommand}" />
+              <MenuItem Header="Atalhos do teclado" Command="{Binding ShowShortcutsCommand}" />
+              <MenuItem Header="Abrir pasta dos fluxos" Command="{Binding SettingsPage.OpenDataFolderCommand}" />
+              <Separator />
+              <MenuItem Header="Sobre o Macro Midas" Command="{Binding ShowAboutCommand}" />
+            </MenuItem>
+          </Menu>
+
+          <Border Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsBusy}"
+                  Background="{StaticResource GoldFaintBrush}" CornerRadius="12" Padding="10,2" IsHitTestVisible="False">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Ellipse Classes="pulseDot" Width="6" Height="6" Fill="{StaticResource GoldBrush}" VerticalAlignment="Center" IsVisible="{Binding !IsRecording}" />
+              <Ellipse Classes="pulseDot" Width="6" Height="6" Fill="{StaticResource DangerBrush}" VerticalAlignment="Center" IsVisible="{Binding IsRecording}" />
+              <TextBlock Text="{Binding StatusText}" FontSize="11.5" Foreground="{StaticResource Text2Brush}" />
+              <TextBlock Text="{Binding StatusDetail}" FontSize="11.5" Foreground="{StaticResource Text3Brush}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+
+      <!-- Faixa de fluxos (abaixo do menu, ocupa pouco espaço) -->
+      <Border Grid.Row="1" Background="{StaticResource Bg1Brush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,1">
+        <Grid ColumnDefinitions="Auto,*" Height="38">
+          <Button Theme="{StaticResource GhostButton}" Classes="outline" Margin="8,5,4,5" Padding="9,4" VerticalAlignment="Center"
+                  Command="{Binding NewFlowCommand}" ToolTip.Tip="Criar um fluxo vazio (Ctrl+N)">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <c:Icon Width="12" Height="12" Data="{StaticResource Icon.Plus}" />
+              <TextBlock Text="Novo fluxo" FontSize="12" />
+            </StackPanel>
+          </Button>
+
+          <ListBox x:Name="FlowList" Grid.Column="1" Classes="flowtabs" Background="Transparent"
+                   ItemsSource="{Binding FilteredFlows}" SelectedItem="{Binding ListSelection}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="2" />
+              </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="m:Flow">
+                <TextBlock Classes="flowName" Text="{Binding Name}" FontSize="12.5" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" MaxWidth="200">
+                  <TextBlock.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Executar" Click="OnRunFlowClicked" />
+                      <MenuItem Header="Duplicar" Click="OnDuplicateFlowClicked" />
+                      <MenuItem Header="Exportar .mmf" Click="OnExportMmfClicked" />
+                      <MenuItem Header="Exportar .txt" Click="OnExportTxtClicked" />
+                      <Separator />
+                      <MenuItem Header="Apagar" Click="OnDeleteFlowClicked" />
+                    </ContextMenu>
+                  </TextBlock.ContextMenu>
+                </TextBlock>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <!-- Conteúdo -->
+      <TransitioningContentControl Grid.Row="2" Content="{Binding CurrentPage}">
+        <TransitioningContentControl.PageTransition>
+          <CrossFade Duration="0:0:0.12" />
+        </TransitioningContentControl.PageTransition>
+      </TransitioningContentControl>
+    </Grid>
+
+    <!-- Diálogo -->
+    <Panel IsVisible="{Binding Dialog, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <Border Background="#99000000" />
+      <Border Classes="card" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20"
+              BoxShadow="0 16 48 0 #80000000" DataContext="{Binding Dialog}" x:DataType="vm:DialogViewModel">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="{StaticResource Text2Brush}" LineHeight="19" />
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,6,0,0">
+            <Button Theme="{StaticResource GhostButton}" Classes="outline" Content="{Binding CancelText}" Command="{Binding CancelCommand}"
+                    IsVisible="{Binding CancelText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <Button Theme="{StaticResource GoldButton}" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}"
+                    IsVisible="{Binding !IsDanger}" />
+            <Button Theme="{StaticResource DangerButton}" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}"
+                    IsVisible="{Binding IsDanger}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
+    <!-- Avisos -->
+    <ItemsControl ItemsSource="{Binding Toasts}" HorizontalAlignment="Center" VerticalAlignment="Top"
+                  Margin="0,40,0,0" Width="380">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:ToastViewModel">
+          <Panel Classes="appear" Margin="0,6,0,0">
+            <Border Classes="toast"
+                    Classes.error="{Binding IsError}" Classes.warning="{Binding IsWarning}" Classes.success="{Binding IsSuccess}">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <c:Icon Classes="toastIcon" Width="14" Height="14" Margin="0,1,10,0" VerticalAlignment="Top"
+                        Data="{Binding Icon, Converter={x:Static conv:IconKeyConverter.Instance}}" />
+                <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" FontSize="12.5" />
+                <Button Grid.Column="2" Theme="{StaticResource IconButton}" Width="22" Height="22" Margin="8,-2,-4,0" VerticalAlignment="Top"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DismissToastCommand}" CommandParameter="{Binding}">
+                  <c:Icon Width="10" Height="10" Data="{StaticResource Icon.Close}" />
+                </Button>
+              </Grid>
+            </Border>
+          </Panel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </Panel>
+</Window>

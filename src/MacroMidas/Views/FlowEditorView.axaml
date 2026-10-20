@@ -1,0 +1,161 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MacroMidas.ViewModels"
+             xmlns:v="using:MacroMidas.Views"
+             xmlns:m="using:MacroMidas.Models"
+             xmlns:e="using:MacroMidas.Engine"
+             xmlns:c="using:MacroMidas.Controls"
+             xmlns:conv="using:MacroMidas.Converters"
+             x:Class="MacroMidas.Views.FlowEditorView"
+             x:DataType="vm:FlowEditorViewModel"
+             Focusable="True">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Cabeçalho: nome, resumo (clicável) e ações principais -->
+    <Grid ColumnDefinitions="*,Auto" Margin="24,12,16,8">
+      <StackPanel>
+        <TextBox x:Name="NameBox" Classes="title" Text="{Binding Flow.Name}" Watermark="Nome do fluxo"
+                 FontSize="16" FontWeight="SemiBold" Padding="6,2" MinHeight="28" Margin="-7,0,0,0"
+                 HorizontalAlignment="Left" MinWidth="200" MaxWidth="560" />
+        <Button x:Name="RunSettingsButton" Theme="{StaticResource GhostButton}" Padding="6,1" Margin="-6,0,0,0"
+                HorizontalAlignment="Left" ToolTip.Tip="Clique para mudar quantas vezes repete, onde roda e o atalho">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="{Binding RunSummary}" FontSize="12" />
+            <c:Icon Width="10" Height="10" Data="{StaticResource Icon.ChevronDown}" />
+          </StackPanel>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <v:RunSettingsPanel x:Name="RunPanel" />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+        <Button Theme="{StaticResource GhostButton}" Padding="10,6"
+                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsIdle}"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleRecordCommand}"
+                ToolTip.Tip="Gravar (F9): você usa o PC normalmente e os passos são criados sozinhos">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Ellipse Width="7" Height="7" Fill="{StaticResource DangerBrush}" Opacity="0.8" VerticalAlignment="Center" />
+            <TextBlock Text="Gravar" />
+          </StackPanel>
+        </Button>
+        <Button Theme="{StaticResource GoldButton}"
+                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsIdle}"
+                IsEnabled="{Binding !IsEmpty}"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).StartSelectedCommand}"
+                ToolTip.Tip="Iniciar (F6)" ToolTip.ShowOnDisabled="True">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <c:Icon Width="10" Height="10" Filled="True" Data="{StaticResource Icon.Play}" />
+            <TextBlock Text="Iniciar" />
+          </StackPanel>
+        </Button>
+
+        <Button Theme="{StaticResource GhostButton}" Padding="10,6"
+                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsRunning}"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).TogglePauseCommand}"
+                ToolTip.Tip="Pausar ou continuar (F7)">
+          <TextBlock Text="Pausar" />
+        </Button>
+        <Button Theme="{StaticResource GoldButton}"
+                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsBusy}"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).StopCommand}"
+                ToolTip.Tip="Parar (F8): 1 vez termina a volta atual, 2 vezes para na hora">
+          <TextBlock Text="Parar" />
+        </Button>
+      </StackPanel>
+    </Grid>
+
+    <!-- Corpo: passos + opções do passo selecionado -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="14,0,12,10">
+      <Grid RowDefinitions="*,Auto">
+        <Panel>
+          <ScrollViewer x:Name="StepsScroll" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="6,0,10,40">
+              <ItemsControl x:Name="StepsList" ItemsSource="{Binding Flow.Steps}" ItemTemplate="{StaticResource StepCardSelector}"
+                            Background="Transparent" />
+              <v:AddStepButton x:Name="AddRootButton" Theme="{StaticResource AddRowButton}" TargetList="{Binding Flow.Steps}" Margin="0,4,0,0"
+                               ToolTip.Tip="Escolha o que o fluxo deve fazer: clicar, digitar, esperar…">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <c:Icon Width="13" Height="13" Data="{StaticResource Icon.Plus}" />
+                  <TextBlock Text="Adicionar passo" />
+                </StackPanel>
+              </v:AddStepButton>
+            </StackPanel>
+          </ScrollViewer>
+
+          <!-- Indicador de onde o passo arrastado vai cair -->
+          <Canvas x:Name="DragLayer" IsHitTestVisible="False">
+            <Border x:Name="DropIndicator" Height="2" CornerRadius="1" IsVisible="False" Background="{StaticResource GoldBrush}" />
+          </Canvas>
+
+          <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" IsHitTestVisible="False" MaxWidth="340">
+            <TextBlock Text="Este fluxo ainda está vazio" HorizontalAlignment="Center" FontSize="14" Foreground="{StaticResource Text2Brush}" />
+            <TextBlock Classes="hint" HorizontalAlignment="Center" TextAlignment="Center"
+                       Text="Clique em “Adicionar passo” para montar um por um, ou em “Gravar” para o Macro Midas aprender com os seus movimentos." />
+          </StackPanel>
+        </Panel>
+
+        <!-- Registro (abre em Executar → Registro da execução) -->
+        <Border Grid.Row="1" Classes="panel" Margin="0,8,0,0" Height="150"
+                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsLogOpen}">
+          <Grid RowDefinitions="Auto,*">
+            <Grid ColumnDefinitions="*,Auto" Margin="12,6,6,2">
+              <TextBlock Text="Registro da execução" FontSize="12" VerticalAlignment="Center" Foreground="{StaticResource Text2Brush}" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
+                <Button Theme="{StaticResource GhostButton}" Padding="8,2" FontSize="11" Content="Limpar"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ClearLogCommand}" />
+                <Button Theme="{StaticResource IconButton}" Width="22" Height="22"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleLogCommand}">
+                  <c:Icon Width="10" Height="10" Data="{StaticResource Icon.Close}" />
+                </Button>
+              </StackPanel>
+            </Grid>
+            <ListBox x:Name="LogList" Grid.Row="1" Background="Transparent" Margin="4,0,4,4"
+                     ItemsSource="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Log}">
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="8,1" />
+                  <Setter Property="MinHeight" Value="0" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="e:RunLogEntry">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding TimeText}" FontFamily="{StaticResource MonoFont}" FontSize="11" Foreground="{StaticResource Text3Brush}" />
+                    <TextBlock Text="{Binding Message}" FontSize="12"
+                               Foreground="{Binding Level, Converter={x:Static conv:LogLevelBrushConverter.Instance}}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <!-- Opções do passo selecionado -->
+      <Border x:Name="InspectorPanel" Grid.Column="1" Width="310" Margin="12,0,0,0" Classes="panel" IsVisible="{Binding HasSelection}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="16,12,16,16" Spacing="14" DataContext="{Binding SelectedStep}" x:DataType="m:FlowStep">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Help}" FontSize="12" Foreground="{StaticResource Text3Brush}" TextWrapping="Wrap" />
+              </StackPanel>
+              <Button Grid.Column="1" Theme="{StaticResource IconButton}" Width="26" Height="26" VerticalAlignment="Top" Margin="8,-2,-6,0"
+                      ToolTip.Tip="Fechar (Esc)"
+                      Command="{Binding $parent[v:FlowEditorView].((vm:FlowEditorViewModel)DataContext).SelectCommand}" CommandParameter="{x:Null}">
+                <c:Icon Width="11" Height="11" Data="{StaticResource Icon.Close}" />
+              </Button>
+            </Grid>
+            <Border Classes="divider" />
+
+            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource InspectorSelector}" />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

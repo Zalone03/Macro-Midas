@@ -1,0 +1,252 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MacroMidas.ViewModels"
+             xmlns:s="using:MacroMidas.Services"
+             xmlns:c="using:MacroMidas.Controls"
+             xmlns:conv="using:MacroMidas.Converters"
+             x:Class="MacroMidas.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <UserControl.Styles>
+    <!-- Linha: título + explicação à esquerda, controle à direita -->
+    <Style Selector="Grid.row">
+      <Setter Property="Margin" Value="0,0,0,18" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{StaticResource Text3Brush}" />
+      <Setter Property="Margin" Value="0,10,0,12" />
+    </Style>
+    <Style Selector="Slider">
+      <Setter Property="Width" Value="170" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="NumericUpDown">
+      <Setter Property="Width" Value="90" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ToggleSwitch">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel MaxWidth="620" Margin="40,22,40,40">
+      <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,26">
+        <StackPanel>
+          <TextBlock Text="Configurações" FontSize="18" FontWeight="SemiBold" />
+          <TextBlock Text="As mudanças são salvas sozinhas." FontSize="12" Foreground="{StaticResource Text3Brush}" Margin="0,3,0,0" />
+        </StackPanel>
+        <Button Grid.Column="1" Theme="{StaticResource GhostButton}" Classes="outline" Padding="12,5" VerticalAlignment="Top"
+                Content="Voltar" ToolTip.Tip="Fechar as configurações (Esc)"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleSettingsCommand}" />
+      </Grid>
+
+      <!-- Essencial -->
+      <Grid Classes="row" ColumnDefinitions="*,Auto">
+        <StackPanel Margin="0,0,16,0">
+          <TextBlock Classes="fieldLabel" Text="Borda na tela durante a execução" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="As bordas da tela pulsam bem de leve para lembrar que o fluxo está rodando. Não atrapalha cliques nem a leitura de cores." />
+        </StackPanel>
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding Overlay.Enabled}" />
+      </Grid>
+      <Grid Classes="row" ColumnDefinitions="*,Auto,42" IsEnabled="{Binding Overlay.Enabled}">
+        <StackPanel Margin="0,0,16,0">
+          <TextBlock Classes="fieldLabel" Text="Intensidade da borda" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="Mais para a esquerda = mais discreta." />
+        </StackPanel>
+        <Slider Grid.Column="1" Minimum="0.05" Maximum="1" Value="{Binding Overlay.Opacity}" />
+        <TextBlock Grid.Column="2" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   Text="{Binding Overlay.Opacity, Converter={x:Static conv:PercentConverter.Instance}}" />
+      </Grid>
+      <Grid Classes="row" ColumnDefinitions="*,Auto">
+        <StackPanel Margin="0,0,16,0">
+          <TextBlock Classes="fieldLabel" Text="Barra Pausar / Parar" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="Uma barrinha transparente embaixo da tela enquanto roda. Parar 1 vez termina a volta atual; 2 vezes para na hora." />
+        </StackPanel>
+        <ToggleSwitch Grid.Column="1" IsChecked="{Binding Overlay.ControlBar}" />
+      </Grid>
+      <Grid Classes="row" ColumnDefinitions="*,Auto,42" IsEnabled="{Binding Overlay.ControlBar}">
+        <StackPanel Margin="0,0,16,0">
+          <TextBlock Classes="fieldLabel" Text="Transparência da barra" Margin="0" />
+          <TextBlock Classes="fieldHelp" Text="Ela fica nítida quando você passa o mouse." />
+        </StackPanel>
+        <Slider Grid.Column="1" Minimum="0.15" Maximum="1" Value="{Binding Overlay.ControlBarOpacity}" />
+        <TextBlock Grid.Column="2" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   Text="{Binding Overlay.ControlBarOpacity, Converter={x:Static conv:PercentConverter.Instance}}" />
+      </Grid>
+      <Button Theme="{StaticResource GhostButton}" Classes="outline" HorizontalAlignment="Left" Padding="10,5" Margin="0,-6,0,24"
+              Command="{Binding PreviewCommand}" IsEnabled="{Binding !IsPreviewing}" Content="Ver como fica (3 segundos)" />
+
+      <StackPanel Margin="0,0,0,10">
+        <TextBlock Classes="fieldLabel" Text="Atalhos do teclado" Margin="0" />
+        <TextBlock Classes="fieldHelp" Text="Funcionam em qualquer programa. Clique numa tecla e aperte a nova para trocar; “+ Adicionar” dá outra tecla para a mesma ação; o × tira." />
+      </StackPanel>
+      <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto">
+        <TextBlock Classes="label" Text="Iniciar" VerticalAlignment="Top" Margin="0,6,0,0" />
+        <c:HotkeyEditor x:Name="StartKeys" Grid.Column="1" Value="{Binding Hotkeys.Start}" />
+        <TextBlock Grid.Row="1" Classes="label" Text="Pausar / continuar" VerticalAlignment="Top" Margin="0,6,0,0" />
+        <c:HotkeyEditor Grid.Row="1" Grid.Column="1" Value="{Binding Hotkeys.Pause}" />
+        <TextBlock Grid.Row="2" Classes="label" Text="Parar" VerticalAlignment="Top" Margin="0,6,0,0" />
+        <c:HotkeyEditor Grid.Row="2" Grid.Column="1" Value="{Binding Hotkeys.Stop}" />
+        <TextBlock Grid.Row="3" Classes="label" Text="Gravar" VerticalAlignment="Top" Margin="0,6,0,0" />
+        <c:HotkeyEditor Grid.Row="3" Grid.Column="1" Value="{Binding Hotkeys.Record}" />
+      </Grid>
+      <TextBlock Margin="0,8,0,0" Text="{Binding HotkeyWarning}" TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource DangerBrush}"
+                 IsVisible="{Binding HotkeyWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+      <!-- Mais opções -->
+      <ToggleButton x:Name="More" Theme="{StaticResource MoreToggle}" Content="Mais opções" Margin="0,26,0,0" />
+      <StackPanel IsVisible="{Binding #More.IsChecked}" Margin="0,12,0,0">
+
+        <TextBlock Classes="section" Text="Aparência da borda" />
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Cor da borda" VerticalAlignment="Center" Margin="0" />
+          <TextBox Grid.Column="1" Width="96" Text="{Binding Overlay.Color}" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto,42">
+          <TextBlock Classes="fieldLabel" Text="Espessura da linha" VerticalAlignment="Center" Margin="0" />
+          <Slider Grid.Column="1" Minimum="0" Maximum="12" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Overlay.Thickness}" />
+          <TextBlock Grid.Column="2" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Overlay.Thickness}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto,42">
+          <TextBlock Classes="fieldLabel" Text="Largura do brilho" VerticalAlignment="Center" Margin="0" />
+          <Slider Grid.Column="1" Minimum="0" Maximum="90" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Overlay.GlowSize}" />
+          <TextBlock Grid.Column="2" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding Overlay.GlowSize}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto,42">
+          <TextBlock Classes="fieldLabel" Text="Ritmo do pulso" VerticalAlignment="Center" Margin="0" />
+          <Slider Grid.Column="1" Minimum="0.4" Maximum="5" TickFrequency="0.1" IsSnapToTickEnabled="True" Value="{Binding Overlay.PulseSeconds}" />
+          <TextBlock Grid.Column="2" FontSize="12" Foreground="{StaticResource Text2Brush}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                     Text="{Binding Overlay.PulseSeconds, Converter={x:Static conv:SecondsConverter.Instance}}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Posição da barra" VerticalAlignment="Center" Margin="0" />
+          <Border Grid.Column="1" Classes="segmented">
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Content="Embaixo" IsChecked="{Binding Overlay.ControlBarPlacement, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Bottom}" />
+              <RadioButton Content="Em cima" IsChecked="{Binding Overlay.ControlBarPlacement, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Top}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+
+        <TextBlock Classes="section" Text="Modo Lock" />
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Moldura na janela travada" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Mostra qual janela o fluxo está usando." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Overlay.LockFrame}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Bloquear meu mouse nessa janela" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Evita que um clique seu sem querer atrapalhe o fluxo." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Overlay.LockBlocksMouse}" />
+        </Grid>
+
+        <TextBlock Classes="section" Text="Gravação" />
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Gravar o caminho do mouse" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Grava cada movimento, exatamente como você fez e no mesmo ritmo. Desligado, grava só onde você clica." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Recording.RecordMouseMoves}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Gravar o teclado" VerticalAlignment="Center" Margin="0" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Recording.RecordKeyboard}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Gravar a rodinha do mouse" VerticalAlignment="Center" Margin="0" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Recording.RecordScroll}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Gravar as pausas entre as ações" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Mantém o mesmo ritmo que você usou." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Recording.RecordWaits}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Contagem antes de gravar (segundos)" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Tempo para você se preparar." />
+          </StackPanel>
+          <NumericUpDown Grid.Column="1" Value="{Binding Recording.CountdownSeconds}" Minimum="0" Maximum="10" FormatString="0" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Ignorar pausas menores que (ms)" VerticalAlignment="Center" Margin="0" />
+          <NumericUpDown Grid.Column="1" Value="{Binding Recording.MinWaitMs}" Minimum="0" Maximum="5000" Increment="10" FormatString="0" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Vira arrasto a partir de (px)" VerticalAlignment="Center" Margin="0" />
+          <NumericUpDown Grid.Column="1" Value="{Binding Recording.DragThreshold}" Minimum="1" Maximum="200" FormatString="0" />
+        </Grid>
+
+        <TextBlock Classes="section" Text="Segurança" />
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Saída de emergência" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Levar o mouse até o canto superior esquerdo da tela para o fluxo na hora." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Execution.FailsafeCorner}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Se eu mexer no mouse ou no teclado durante o fluxo" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Só fora do modo Lock, quando o fluxo usa o mouse de verdade: assim você sempre retoma o controle." />
+          </StackPanel>
+          <Border Grid.Column="1" Classes="segmented" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Content="Nada" IsChecked="{Binding Execution.OnPhysicalMouse, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Ignore}" />
+              <RadioButton Content="Pausar" IsChecked="{Binding Execution.OnPhysicalMouse, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Pause}" />
+              <RadioButton Content="Parar" IsChecked="{Binding Execution.OnPhysicalMouse, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Stop}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+
+        <TextBlock Classes="section" Text="Janela do Macro Midas" />
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Minimizar ao iniciar um fluxo" VerticalAlignment="Center" Margin="0" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Execution.MinimizeOnRun}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Voltar quando o fluxo terminar" VerticalAlignment="Center" Margin="0" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Execution.RestoreAfterRun}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Pedir confirmação antes de apagar fluxos" VerticalAlignment="Center" Margin="0" />
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding Settings.ConfirmDelete}" />
+        </Grid>
+
+        <TextBlock Classes="section" Text="Sistema" />
+        <Grid Classes="row" ColumnDefinitions="*,Auto" IsVisible="{Binding !IsAdministrator}">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Abrir como administrador" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Necessário só para controlar programas que também rodam como administrador." />
+          </StackPanel>
+          <Button Grid.Column="1" Theme="{StaticResource GhostButton}" Classes="outline" Padding="10,5" Content="Reiniciar" Command="{Binding RestartAsAdminCommand}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Pasta dos fluxos" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="{Binding DataFolder}" />
+          </StackPanel>
+          <Button Grid.Column="1" Theme="{StaticResource GhostButton}" Classes="outline" Padding="10,5" Content="Abrir" Command="{Binding OpenDataFolderCommand}" />
+        </Grid>
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="fieldLabel" Text="Voltar ao padrão" Margin="0" />
+            <TextBlock Classes="fieldHelp" Text="Desfaz todas as mudanças de configuração. Seus fluxos não são apagados." />
+          </StackPanel>
+          <Button Grid.Column="1" Theme="{StaticResource GhostButton}" Classes="outline" Padding="10,5" Content="Restaurar" Command="{Binding ResetAllCommand}" />
+        </Grid>
+        <TextBlock HorizontalAlignment="Center" Margin="0,12,0,0" FontSize="11" Foreground="{StaticResource Text3Brush}">
+          <Run Text="Macro Midas" />
+          <Run Text="{Binding Version}" />
+        </TextBlock>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

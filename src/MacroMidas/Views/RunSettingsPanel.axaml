@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MacroMidas.ViewModels"
+             xmlns:n="using:MacroMidas.Native"
+             xmlns:c="using:MacroMidas.Controls"
+             xmlns:conv="using:MacroMidas.Converters"
+             x:Class="MacroMidas.Views.RunSettingsPanel"
+             x:DataType="vm:FlowEditorViewModel"
+             Width="340">
+  <StackPanel Margin="6,4,6,2" Spacing="14">
+
+    <!-- Quantas vezes -->
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="Quantas vezes rodar" />
+      <Grid ColumnDefinitions="*,Auto">
+        <Border Classes="segmented">
+          <UniformGrid Rows="1">
+            <RadioButton Content="Nº de vezes" IsChecked="{Binding RunSettings.RepeatMode, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Count}" />
+            <RadioButton Content="Sem parar" IsChecked="{Binding RunSettings.RepeatMode, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Infinite}" />
+          </UniformGrid>
+        </Border>
+        <NumericUpDown Grid.Column="1" Width="70" Margin="8,0,0,0" Value="{Binding RunSettings.RepeatCount}" Minimum="1" Maximum="100000000" FormatString="0"
+                       IsVisible="{Binding RunSettings.RepeatMode, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Count}" />
+      </Grid>
+      <TextBlock Classes="fieldHelp" Text="“Sem parar” repete até você apertar Parar (F8)." />
+    </StackPanel>
+
+    <!-- Lock -->
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Modo Lock (recomendado)" Margin="0" />
+        <TextBlock Classes="fieldHelp" Text="Clica e digita sem mexer no seu mouse e teclado: você continua usando o PC. Desligue só se algum programa (ex.: jogo) não responder." />
+      </StackPanel>
+      <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
+                    IsChecked="{Binding RunSettings.InputMode, Converter={x:Static conv:LockModeConverter.Instance}}" />
+    </Grid>
+
+    <!-- Onde -->
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="Onde o fluxo trabalha" />
+      <Border Classes="segmented">
+        <UniformGrid Rows="1">
+          <RadioButton Content="Na tela inteira" IsChecked="{Binding RunSettings.Target, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Screen}" />
+          <RadioButton Content="Numa janela" IsChecked="{Binding RunSettings.Target, Converter={x:Static conv:EnumEqualsConverter.Instance}, ConverterParameter=Window}" />
+        </UniformGrid>
+      </Border>
+      <TextBlock Classes="fieldHelp" IsVisible="{Binding !RunSettings.IsWindowTarget}"
+                 Text="As posições valem para a tela toda." />
+
+      <StackPanel IsVisible="{Binding RunSettings.IsWindowTarget}" Spacing="8" Margin="0,10,0,0">
+        <Grid ColumnDefinitions="*,6,Auto">
+          <TextBox Text="{Binding RunSettings.WindowTitle}" Watermark="Nome da janela" />
+          <Button Grid.Column="2" Theme="{StaticResource GhostButton}" Classes="outline" Padding="10,6" Click="OnPickWindowClick"
+                  ToolTip.Tip="Clique e depois na janela desejada">
+            <TextBlock Text="Escolher" />
+          </Button>
+        </Grid>
+        <TextBlock Classes="fieldHelp" Margin="0" Text="As posições ficam relativas à janela, então funcionam mesmo se ela mudar de lugar." />
+        <ToggleButton x:Name="ListToggle" Theme="{StaticResource MoreToggle}" Content="Ver janelas abertas" Command="{Binding RefreshWindowsCommand}" />
+        <ListBox IsVisible="{Binding #ListToggle.IsChecked}" ItemsSource="{Binding Windows}" MaxHeight="160"
+                 Background="#141415" CornerRadius="6" SelectionChanged="OnWindowChosen">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="n:WindowInfo">
+              <StackPanel Spacing="1" Margin="2">
+                <TextBlock Text="{Binding Title}" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding ProcessName}" FontSize="11" Foreground="{StaticResource Text3Brush}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Posições proporcionais (funciona em qualquer PC) -->
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Posições proporcionais à tela (0 a 1000)" Margin="0" />
+        <TextBlock Classes="fieldHelp" Text="Guarda onde clicar/arrastar como proporção da tela (0 a 1000 em cada eixo), então o fluxo cai no lugar certo em qualquer resolução ou PC. Desligado, usa pixels fixos." />
+      </StackPanel>
+      <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
+                    IsChecked="{Binding RunSettings.CoordinateMode, Converter={x:Static conv:ProportionalModeConverter.Instance}}" />
+    </Grid>
+
+    <!-- Tecla própria deste fluxo -->
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="Tecla para iniciar só este fluxo" />
+      <c:HotkeyEditor Value="{Binding RunSettings.Hotkey}" AllowMultiple="False" EmptyText="Definir tecla (opcional)" />
+      <TextBlock Classes="fieldHelp" Text="Funciona de qualquer lugar do Windows, além do Iniciar geral." />
+    </StackPanel>
+
+    <!-- Mais opções -->
+    <ToggleButton x:Name="More" Theme="{StaticResource MoreToggle}" Content="Mais opções" />
+    <StackPanel IsVisible="{Binding #More.IsChecked}" Spacing="14">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Pausa entre uma volta e outra (segundos)" />
+        <NumericUpDown Value="{Binding RunSettings.IterationDelayMs, Converter={x:Static conv:MsToSecondsConverter.Instance}}"
+                       Minimum="0" Maximum="86400" Increment="0.5" FormatString="0.##" />
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="Esperar antes de começar (segundos)" />
+        <NumericUpDown Value="{Binding RunSettings.StartDelayMs, Converter={x:Static conv:MsToSecondsConverter.Instance}}"
+                       Minimum="0" Maximum="600" Increment="0.5" FormatString="0.##" />
+        <TextBlock Classes="fieldHelp" Text="Tempo para você clicar na janela certa antes de o fluxo começar." />
+      </StackPanel>
+      <StackPanel>
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Classes="fieldLabel" Text="Velocidade" />
+          <TextBlock Grid.Column="1" FontSize="12" Foreground="{StaticResource Text2Brush}"
+                     Text="{Binding RunSettings.Speed, Converter={x:Static conv:SpeedConverter.Instance}}" />
+        </Grid>
+        <Slider Minimum="0.25" Maximum="4" TickFrequency="0.25" IsSnapToTickEnabled="True" Value="{Binding RunSettings.Speed}" />
+        <TextBlock Classes="fieldHelp" Text="Acelera ou desacelera as esperas e os movimentos." />
+      </StackPanel>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

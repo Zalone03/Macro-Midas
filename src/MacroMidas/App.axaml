@@ -1,0 +1,41 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MacroMidas.App"
+             Name="Macro Midas"
+             RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://MacroMidas/Styles/Colors.axaml" />
+        <ResourceInclude Source="avares://MacroMidas/Styles/Icons.axaml" />
+        <ResourceInclude Source="avares://MacroMidas/Styles/Themes.axaml" />
+        <ResourceInclude Source="avares://MacroMidas/Views/Templates/StepCards.axaml" />
+        <ResourceInclude Source="avares://MacroMidas/Views/Templates/StepInspectors.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme DensityStyle="Compact">
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark"
+                               Accent="#A88D57"
+                               RegionColor="#111113"
+                               AltHigh="#111113"
+                               ChromeMediumLow="#17171A"
+                               ChromeMedium="#1C1C20"
+                               ChromeLow="#141416"
+                               ChromeHigh="#2C2C31"
+                               BaseHigh="#E8E6E1"
+                               BaseMediumHigh="#C3C1C9"
+                               BaseMedium="#9D9BA5"
+                               BaseMediumLow="#65646D"
+                               BaseLow="#29292E"
+                               ListLow="#1A1A1D"
+                               ListMedium="#232327"
+                               ErrorText="#E06060" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://MacroMidas/Styles/Controls.axaml" />
+  </Application.Styles>
+</Application>
